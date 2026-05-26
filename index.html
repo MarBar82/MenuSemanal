@@ -48,9 +48,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .receta-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .receta-name{font-size:16px;font-weight:700;color:#1a202c;line-height:1.3}
 .r-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600;margin-top:5px}
-.b-desayuno{background:#fef3c7;color:#b45309}.b-almuerzo{background:#dcfce7;color:#166534}
-.b-cena{background:#ede9fe;color:#5b21b6}.b-merienda{background:#fce7f3;color:#9d174d}
-.b-postre{background:#fef9c3;color:#854d0e}.b-otro{background:#f1f5f9;color:#475569}
+.b-principal{background:#dcfce7;color:#166534}.b-guarnicion{background:#f0fdf4;color:#15803d}
+.b-desayuno{background:#fef3c7;color:#b45309}.b-postres{background:#fef9c3;color:#854d0e}
+.b-snacks{background:#fce7f3;color:#9d174d}
 .receta-actions{display:flex;gap:2px;flex-shrink:0}
 .receta-porciones{font-size:13px;color:#718096;margin-bottom:8px}
 .ing-chips{display:flex;flex-wrap:wrap;gap:5px}
@@ -86,21 +86,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .day-date{font-size:11px;color:#a0aec0;margin-top:2px}
 .meal-header{background:#f7fafc;padding:10px 8px;display:flex;align-items:center;gap:6px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
 .meal-icon-label{font-size:13px;font-weight:700;color:#4a5568}
-.meal-cell{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;min-height:78px;padding:6px;display:flex;align-items:stretch}
+.meal-cell{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;min-height:78px;padding:6px;display:flex;flex-direction:column;gap:4px}
 .meal-cell:last-child{border-right:none}
-.cell-empty{width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;transition:background .15s;color:#cbd5e0;font-size:22px}
+.cell-empty{flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;transition:background .15s;color:#cbd5e0;font-size:22px}
 .cell-empty:hover{background:#f0fff4;color:#27ae60}
-.cell-filled{width:100%;background:#f0fff4;border-radius:6px;border:1.5px solid #c6f6d5;padding:7px;cursor:pointer;position:relative}
+.cell-filled{background:#f0fff4;border-radius:6px;border:1.5px solid #c6f6d5;padding:7px;position:relative}
 .cell-filled:hover{border-color:#27ae60;background:#dcfce7}
-.cell-recipe-name{font-size:12px;font-weight:700;color:#1a202c;line-height:1.3}
+.cell-recipe-name{font-size:12px;font-weight:700;color:#1a202c;line-height:1.3;padding-right:18px}
 .cell-porciones{font-size:11px;color:#718096;margin-top:3px}
 .cell-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid #e2e8f0;color:#a0aec0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all .2s;opacity:0;line-height:1}
 .cell-filled:hover .cell-remove{opacity:1}
 .cell-remove:hover{background:#e53e3e;color:#fff;border-color:#e53e3e}
+.cell-add{display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;border:1px dashed #cbd5e0;color:#a0aec0;font-size:18px;padding:3px;transition:all .15s;min-height:26px}
+.cell-add:hover{border-color:#27ae60;color:#27ae60;background:#f0fff4}
 .picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;max-height:380px;overflow-y:auto;padding:2px}
 .picker-item{padding:11px;border:1.5px solid #e8ecf0;border-radius:10px;cursor:pointer;transition:all .2s}
 .picker-item:hover{border-color:#27ae60;background:#f0fff4}
-.picker-item.sel{border-color:#27ae60;background:#f0fff4}
 .pi-name{font-size:13px;font-weight:700;color:#2d3748}
 .pi-meta{font-size:12px;color:#718096;margin-top:3px}
 .shop-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
@@ -131,15 +132,20 @@ const {useState,useEffect,useMemo,useCallback,useRef} = React;
 
 const DAYS_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const DAYS_KEY   = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
-const MEALS      = ['desayuno','almuerzo','cena'];
-const MEAL_LBL   = {desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'};
-const MEAL_ICO   = {desayuno:'🌅',almuerzo:'🍽️',cena:'🌙'};
-const RECIPE_CATS = ['Desayuno','Almuerzo','Cena','Merienda','Postre','Otro'];
+const MEALS      = ['desayuno','almuerzo','te','cena'];
+const MEAL_LBL   = {desayuno:'Desayuno',almuerzo:'Almuerzo',te:'Té',cena:'Cena'};
+const MEAL_ICO   = {desayuno:'🌅',almuerzo:'🍽️',te:'☕',cena:'🌙'};
+const RECIPE_CATS = ['Plato Principal','Guarnición','Desayuno','Postres','Snacks'];
 const ING_CATS   = ['Verduras y frutas','Carnes y pescados','Lácteos y huevos','Granos, harinas y pastas','Conservas y enlatados','Condimentos y especias','Panificados','Bebidas','Otros'];
 const CAT_ICO    = {'Verduras y frutas':'🥦','Carnes y pescados':'🥩','Lácteos y huevos':'🥛','Granos, harinas y pastas':'🌾','Conservas y enlatados':'🥫','Condimentos y especias':'🧂','Panificados':'🍞','Bebidas':'🥤','Otros':'📦'};
 const UNITS      = ['g','kg','ml','l','unidades','tazas','cucharadas','cucharaditas','pizcas','dientes','ramas','paquetes','latas','fetas'];
-const BADGE_CLS  = {Desayuno:'b-desayuno',Almuerzo:'b-almuerzo',Cena:'b-cena',Merienda:'b-merienda',Postre:'b-postre',Otro:'b-otro'};
-const CAT_EMO    = {Desayuno:'🌅',Almuerzo:'☀️',Cena:'🌙',Merienda:'☕',Postre:'🍮',Otro:'🍴'};
+const BADGE_CLS  = {'Plato Principal':'b-principal','Guarnición':'b-guarnicion','Desayuno':'b-desayuno','Postres':'b-postres','Snacks':'b-snacks'};
+const CAT_EMO    = {'Plato Principal':'🍽️','Guarnición':'🥗','Desayuno':'🌅','Postres':'🍮','Snacks':'🍿'};
+
+const CAT_MIGRATION = {
+  'Almuerzo':'Plato Principal','Cena':'Plato Principal',
+  'Otro':'Guarnición','Postre':'Postres','Merienda':'Snacks'
+};
 
 const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2);
 
@@ -176,7 +182,6 @@ function useFirestoreSync(docId, defaultValue) {
     const ref = db.collection('app').doc(docId);
     const unsub = ref.onSnapshot(snap => {
       const stored = snap.exists ? snap.data().v : undefined;
-      // Considerar vacío: undefined, null, o array vacío cuando el default no lo es
       const esVacio = stored === undefined || stored === null ||
         (Array.isArray(stored) && stored.length === 0 &&
          Array.isArray(defaultValue) && defaultValue.length > 0);
@@ -185,7 +190,6 @@ function useFirestoreSync(docId, defaultValue) {
         setV(stored);
         try { localStorage.setItem(docId, JSON.stringify(stored)); } catch {}
       } else {
-        // Firestore vacío o inexistente → escribir valor actual (default)
         ref.set({ v: latestRef.current }).catch(() => {});
       }
     }, err => console.warn('Firestore:', docId, err.message));
@@ -209,7 +213,7 @@ function useFirestoreSync(docId, defaultValue) {
 }
 
 // ── RECETA MODAL ─────────────────────────────────────────────────────────────
-const mkReceta=()=>({id:uid(),nombre:'',categoria:'Almuerzo',porcionesBase:4,ingredientes:[]});
+const mkReceta=()=>({id:uid(),nombre:'',categoria:'Plato Principal',porcionesBase:4,ingredientes:[]});
 const mkIng=()=>({id:uid(),nombre:'',cantidad:'',unidad:'g',categoria:'Otros'});
 
 function RecetaModal({receta,onSave,onClose}){
@@ -316,7 +320,7 @@ function RecetasTab({recetas,setRecetas}){
               <div className="receta-card-top">
                 <div>
                   <div className="receta-name">{r.nombre}</div>
-                  <span className={`r-badge ${BADGE_CLS[r.categoria]||'b-otro'}`}>{CAT_EMO[r.categoria]} {r.categoria}</span>
+                  <span className={`r-badge ${BADGE_CLS[r.categoria]||'b-principal'}`}>{CAT_EMO[r.categoria]||'🍴'} {r.categoria}</span>
                 </div>
                 <div className="receta-actions">
                   <button className="btn-ghost" title="Editar" onClick={()=>setModal(r)}>✏️</button>
@@ -341,7 +345,7 @@ function RecetasTab({recetas,setRecetas}){
 }
 
 // ── RECIPE PICKER MODAL ──────────────────────────────────────────────────────
-function PickerModal({recetas,slot,onSelect,onRemove,onClose}){
+function PickerModal({recetas,slot,onSelect,onClose}){
   const [search,setSearch]=useState('');
   const list=recetas.filter(r=>!search||r.nombre.toLowerCase().includes(search.toLowerCase())||r.categoria.toLowerCase().includes(search.toLowerCase()));
   return(
@@ -358,16 +362,15 @@ function PickerModal({recetas,slot,onSelect,onRemove,onClose}){
           ):(
             <div className="picker-grid">
               {list.map(r=>(
-                <div key={r.id} className={`picker-item ${slot.currentId===r.id?'sel':''}`} onClick={()=>{onSelect(r.id);onClose();}}>
+                <div key={r.id} className="picker-item" onClick={()=>{onSelect(r.id);onClose();}}>
                   <div className="pi-name">{r.nombre}</div>
-                  <div className="pi-meta">{CAT_EMO[r.categoria]} {r.categoria} · {r.porcionesBase} porciones</div>
+                  <div className="pi-meta">{CAT_EMO[r.categoria]||'🍴'} {r.categoria} · {r.porcionesBase} porciones</div>
                 </div>
               ))}
             </div>
           )}
         </div>
         <div className="modal-footer">
-          {slot.currentId&&<button className="btn btn-danger" onClick={()=>{onRemove();onClose();}}>Quitar receta</button>}
           <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
         </div>
       </div>
@@ -380,13 +383,26 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
   const [picker,setPicker]=useState(null);
   const dates=getWeekDates(currentWeek);
 
-  const getSlot=(day,meal)=>plan[currentWeek]?.[day]?.[meal]||null;
-  const setSlot=(day,meal,val)=>setPlan(p=>({...p,[currentWeek]:{...(p[currentWeek]||{}),[day]:{...((p[currentWeek]||{})[day]||{}),[meal]:val}}}));
-
-  const openPicker=(di,meal)=>{
-    const s=getSlot(DAYS_KEY[di],meal);
-    setPicker({dayIdx:di,meal,day:DAYS_KEY[di],currentId:s?.recipeId||null});
+  const getSlot=(day,meal)=>{
+    const v=plan[currentWeek]?.[day]?.[meal];
+    if(!v) return [];
+    return Array.isArray(v)?v:[v];
   };
+
+  const addToSlot=(day,meal,recipeId)=>setPlan(p=>{
+    const cur=p[currentWeek]?.[day]?.[meal];
+    const arr=!cur?[]:(Array.isArray(cur)?cur:[cur]);
+    return{...p,[currentWeek]:{...(p[currentWeek]||{}),[day]:{...((p[currentWeek]||{})[day]||{}),[meal]:[...arr,{recipeId,porciones:personas}]}}};
+  });
+
+  const removeFromSlot=(day,meal,idx)=>setPlan(p=>{
+    const cur=p[currentWeek]?.[day]?.[meal];
+    const arr=!cur?[]:(Array.isArray(cur)?cur:[cur]);
+    const next=arr.filter((_,i)=>i!==idx);
+    return{...p,[currentWeek]:{...(p[currentWeek]||{}),[day]:{...((p[currentWeek]||{})[day]||{}),[meal]:next.length?next:null}}};
+  });
+
+  const openPicker=(di,meal)=>setPicker({dayIdx:di,meal,day:DAYS_KEY[di]});
 
   return(
     <div>
@@ -428,18 +444,26 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
                   <span className="meal-icon-label">{MEAL_LBL[meal]}</span>
                 </div>
                 {DAYS_KEY.map((day,di)=>{
-                  const slot=getSlot(day,meal);
-                  const recipe=slot?recetas.find(r=>r.id===slot.recipeId):null;
+                  const slots=getSlot(day,meal);
                   return(
                     <div key={day} className="meal-cell" style={mi===MEALS.length-1?{borderBottom:'none'}:{}}>
-                      {recipe?(
-                        <div className="cell-filled" onClick={()=>openPicker(di,meal)}>
-                          <div className="cell-recipe-name">{recipe.nombre}</div>
-                          <div className="cell-porciones">👥 {slot.porciones} porciones</div>
-                          <button className="cell-remove" onClick={e=>{e.stopPropagation();setSlot(day,meal,null);}}>✕</button>
-                        </div>
-                      ):(
+                      {slots.length===0?(
                         <div className="cell-empty" onClick={()=>openPicker(di,meal)}>+</div>
+                      ):(
+                        <>
+                          {slots.map((slot,idx)=>{
+                            const recipe=recetas.find(r=>r.id===slot.recipeId);
+                            if(!recipe)return null;
+                            return(
+                              <div key={idx} className="cell-filled">
+                                <div className="cell-recipe-name">{recipe.nombre}</div>
+                                <div className="cell-porciones">👥 {slot.porciones}</div>
+                                <button className="cell-remove" onClick={e=>{e.stopPropagation();removeFromSlot(day,meal,idx);}}>✕</button>
+                              </div>
+                            );
+                          })}
+                          <div className="cell-add" onClick={()=>openPicker(di,meal)}>+</div>
+                        </>
                       )}
                     </div>
                   );
@@ -452,8 +476,7 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
 
       {picker&&(
         <PickerModal recetas={recetas} slot={picker}
-          onSelect={id=>setSlot(picker.day,picker.meal,{recipeId:id,porciones:personas})}
-          onRemove={()=>setSlot(picker.day,picker.meal,null)}
+          onSelect={id=>addToSlot(picker.day,picker.meal,id)}
           onClose={()=>setPicker(null)}/>
       )}
     </div>
@@ -466,15 +489,18 @@ function calcList(plan,recetas,weekKey,personas){
   const totals={};
   for(const day of DAYS_KEY){
     for(const meal of MEALS){
-      const slot=wp[day]?.[meal];
-      if(!slot)continue;
-      const rec=recetas.find(r=>r.id===slot.recipeId);
-      if(!rec)continue;
-      const mult=(slot.porciones||personas)/(rec.porcionesBase||1);
-      for(const ing of rec.ingredientes){
-        const k=`${ing.nombre.toLowerCase()}||${ing.unidad}`;
-        if(!totals[k])totals[k]={nombre:ing.nombre,unidad:ing.unidad,cat:ing.categoria,qty:0};
-        totals[k].qty+=ing.cantidad*mult;
+      const slotVal=wp[day]?.[meal];
+      if(!slotVal)continue;
+      const slots=Array.isArray(slotVal)?slotVal:[slotVal];
+      for(const slot of slots){
+        const rec=recetas.find(r=>r.id===slot.recipeId);
+        if(!rec)continue;
+        const mult=(slot.porciones||personas)/(rec.porcionesBase||1);
+        for(const ing of rec.ingredientes){
+          const k=`${ing.nombre.toLowerCase()}||${ing.unidad}`;
+          if(!totals[k])totals[k]={nombre:ing.nombre,unidad:ing.unidad,cat:ing.categoria,qty:0};
+          totals[k].qty+=ing.cantidad*mult;
+        }
       }
     }
   }
@@ -561,52 +587,51 @@ function ListaComprasTab({recetas,plan,personas,currentWeek,setCurrentWeek,shopC
   );
 }
 
-// ── RECETAS POR DEFECTO (disponibles en cualquier dispositivo) ───────────────
-const uid0 = (s) => s; // IDs fijos para las recetas por defecto
+// ── RECETAS POR DEFECTO ──────────────────────────────────────────────────────
 const V='Verduras y frutas',CA='Carnes y pescados',L='Lácteos y huevos';
 const G='Granos, harinas y pastas',K='Conservas y enlatados',E='Condimentos y especias';
 const PA='Panificados',O='Otros';
-const mk0 = (id, nombre, cat, pb, ings) => ({
-  id, nombre, categoria: cat, porcionesBase: pb,
-  ingredientes: ings.map(([iid,n,c,u,ic]) => ({id:iid,nombre:n,cantidad:c,unidad:u,categoria:ic}))
+const mk0=(id,nombre,cat,pb,ings)=>({
+  id,nombre,categoria:cat,porcionesBase:pb,
+  ingredientes:ings.map(([iid,n,c,u,ic])=>({id:iid,nombre:n,cantidad:c,unidad:u,categoria:ic}))
 });
 const DEFAULT_RECETAS = [
-  mk0('d01','Milanesa de ternera','Almuerzo',4,[['d01i1','Nalga',500,'g',CA],['d01i2','Pan rallado',250,'g',G],['d01i3','Huevos',2,'unidades',L],['d01i4','Sal',50,'g',E]]),
-  mk0('d02','Milanesa de pollo','Almuerzo',4,[['d02i1','Suprema de pollo',1000,'g',CA],['d02i2','Pan rallado',500,'g',G],['d02i3','Harina 0000',300,'g',G],['d02i4','Huevos',2,'unidades',L],['d02i5','Sal',50,'g',E]]),
-  mk0('d03','Pollo al horno','Cena',4,[['d03i1','Pata muslo',5,'unidades',CA]]),
-  mk0('d04','Tarta de jamón y queso','Almuerzo',4,[['d04i1','Tapa de tarta',1,'unidades',G],['d04i2','Queso cremon',250,'g',L],['d04i3','Jamón cocido',200,'g',CA],['d04i4','Huevos',2,'unidades',L],['d04i5','Crema',100,'ml',L]]),
-  mk0('d05','Tarta de zapallitos','Almuerzo',4,[['d05i1','Tapa de tarta',1,'unidades',G],['d05i2','Zapallitos',6,'unidades',V],['d05i3','Cebolla',1,'unidades',V],['d05i4','Huevos',1,'unidades',L],['d05i5','Crema',100,'ml',L],['d05i6','Queso cremon',150,'g',L],['d05i7','Sal',50,'g',E]]),
-  mk0('d06','Tortilla de papas','Almuerzo',4,[['d06i1','Papas',400,'g',V],['d06i2','Huevos',5,'unidades',L],['d06i3','Sal',50,'g',E]]),
-  mk0('d07','Hamburguesa','Almuerzo',4,[['d07i1','Carne picada',1000,'g',CA],['d07i2','Huevos',1,'unidades',L],['d07i3','Cebolla',1,'unidades',V],['d07i4','Pan rallado',200,'g',G]]),
-  mk0('d08','Carne al horno','Cena',4,[['d08i1','Carne (cuadril/picaña/lomo/vacío)',2,'kg',CA]]),
-  mk0('d09','Atún','Almuerzo',1,[['d09i1','Atún en lomitos',1,'latas',K]]),
-  mk0('d10','Fideos con queso','Almuerzo',4,[['d10i1','Fideos (spaghetti/penne/tirabuzon)',1,'paquetes',G],['d10i2','Queso rallado',200,'g',L]]),
-  mk0('d11','Buñuelos de acelga','Almuerzo',4,[['d11i1','Acelga',1,'paquetes',V],['d11i2','Huevos',1,'unidades',L],['d11i3','Harina leudante',100,'g',G],['d11i4','Crema de leche',100,'ml',L],['d11i5','Sal',50,'g',E]]),
-  mk0('d12','Guiso de arroz','Almuerzo',4,[['d12i1','Arroz',300,'g',G],['d12i2','Zanahoria',1,'unidades',V],['d12i3','Carne (cuadril/picaña/lomo/vacío)',600,'g',CA],['d12i4','Cebolla',1,'unidades',V],['d12i5','Sal',50,'g',E],['d12i6','Pimienta',50,'g',E]]),
-  mk0('d13','Comida mexicana','Cena',4,[['d13i1','Suprema de pollo',500,'g',CA],['d13i2','Zanahoria',1,'unidades',V],['d13i3','Morrón rojo',1,'unidades',V],['d13i4','Morrón verde',1,'unidades',V],['d13i5','Rapiditas',1.2,'paquetes',G],['d13i6','Tomate',1,'unidades',V],['d13i7','Sal',50,'g',E],['d13i8','Pimienta',50,'g',E],['d13i9','Pimentón',10,'g',E],['d13i10','Ají molido',10,'g',E],['d13i11','Casancrem',300,'g',L]]),
-  mk0('d14','Pastel de papas','Almuerzo',4,[['d14i1','Carne picada',1,'kg',CA],['d14i2','Papas',1,'kg',V],['d14i3','Leche',150,'ml',L],['d14i4','Manteca',50,'g',L],['d14i5','Aceitunas',100,'g',E],['d14i6','Huevos',2,'unidades',L],['d14i7','Morrón rojo',1,'unidades',V],['d14i8','Cebolla',1,'unidades',V],['d14i9','Sal',50,'g',E],['d14i10','Pimienta',50,'g',E],['d14i11','Salsa de tomate',200,'ml',K]]),
-  mk0('d15','Omelette JyQ','Almuerzo',2,[['d15i1','Huevos',3,'unidades',L],['d15i2','Queso cremon',100,'g',L],['d15i3','Jamón cocido',100,'g',CA]]),
-  mk0('d16','Pizza de muzzarella y jamón','Cena',4,[['d16i1','Harina 0000',500,'g',G],['d16i2','Levadura fresca',50,'g',E],['d16i3','Aceite de girasol',100,'ml',E],['d16i4','Sal',50,'g',E],['d16i5','Azúcar',50,'g',E],['d16i6','Salsa de tomate',200,'ml',K],['d16i7','Condimento para pizza',100,'g',E],['d16i8','Muzzarella',250,'g',L],['d16i9','Jamón cocido',200,'g',CA]]),
-  mk0('d17','Empanadas de JyQ','Almuerzo',4,[['d17i1','Tapas de empanadas',6,'unidades',G],['d17i2','Jamón cocido',300,'g',CA],['d17i3','Queso cremon',300,'g',L],['d17i4','Huevos',1,'unidades',L],['d17i5','Sal',50,'g',E]]),
-  mk0('d18','Empanadas de carne','Almuerzo',4,[['d18i1','Tapas de empanadas',6,'unidades',G],['d18i2','Carne picada',300,'g',CA],['d18i3','Cebolla',1,'unidades',V],['d18i4','Morrón',1,'unidades',V],['d18i5','Huevos',2,'unidades',L],['d18i6','Sal',50,'g',E]]),
-  mk0('d19','Arroz','Otro',4,[['d19i1','Arroz',300,'g',G]]),
-  mk0('d20','Puré de papas','Otro',4,[['d20i1','Papas',500,'g',V],['d20i2','Leche',150,'ml',L],['d20i3','Manteca',50,'g',L],['d20i4','Sal',50,'g',E]]),
-  mk0('d21','Papas al horno','Otro',4,[['d21i1','Papas',300,'g',V]]),
-  mk0('d22','Ensalada rúcula y parmesano','Otro',4,[['d22i1','Rúcula',1,'paquetes',V],['d22i2','Queso de rallar',150,'g',L]]),
-  mk0('d23','Ensalada mixta','Otro',4,[['d23i1','Lechuga mantecosa',1,'paquetes',V],['d23i2','Tomate',2,'unidades',V],['d23i3','Zanahoria',1,'unidades',V],['d23i4','Huevos',2,'unidades',L]]),
-  mk0('d24','Brócoli','Otro',4,[['d24i1','Brócoli',2,'unidades',V]]),
-  mk0('d25','Choclo','Otro',4,[['d25i1','Choclo dulce',4,'unidades',V]]),
-  mk0('d26','Salsa de tomate casera','Otro',4,[['d26i1','Salsa de tomate',250,'ml',K],['d26i2','Cebolla',1,'unidades',V],['d26i3','Sal',50,'g',E]]),
-  mk0('d27','Queso y dulce de batata','Postre',4,[['d27i1','Queso cremon',100,'g',L],['d27i2','Dulce de batata',100,'g',K]]),
-  mk0('d28','Postre de manzana','Postre',4,[['d28i1','Manzanas verdes',2,'unidades',V],['d28i2','Avena',100,'g',G],['d28i3','Manteca',100,'g',L],['d28i4','Azúcar',50,'g',E],['d28i5','Harina 0000',20,'g',G]]),
-  mk0('d29','Banana','Postre',1,[['d29i1','Bananas',1,'unidades',V]]),
-  mk0('d30','Manzana','Postre',1,[['d30i1','Manzanas',1,'unidades',V]]),
-  mk0('d31','Pera','Postre',1,[['d31i1','Peras',1,'unidades',V]]),
-  mk0('d32','Uvas','Postre',4,[['d32i1','Uvas',200,'g',V]]),
-  mk0('d33','Rex','Merienda',1,[['d33i1','Rex',1,'paquetes',O]]),
-  mk0('d34','Chocolinas','Merienda',1,[['d34i1','Chocolinas',1,'paquetes',O]]),
-  mk0('d35','Pepitos','Merienda',1,[['d35i1','Pepitos',1,'paquetes',O]]),
-  mk0('d36','Vainillas','Merienda',1,[['d36i1','Vainillas',0.5,'paquetes',O]]),
+  mk0('d01','Milanesa de ternera','Plato Principal',4,[['d01i1','Nalga',500,'g',CA],['d01i2','Pan rallado',250,'g',G],['d01i3','Huevos',2,'unidades',L],['d01i4','Sal',50,'g',E]]),
+  mk0('d02','Milanesa de pollo','Plato Principal',4,[['d02i1','Suprema de pollo',1000,'g',CA],['d02i2','Pan rallado',500,'g',G],['d02i3','Harina 0000',300,'g',G],['d02i4','Huevos',2,'unidades',L],['d02i5','Sal',50,'g',E]]),
+  mk0('d03','Pollo al horno','Plato Principal',4,[['d03i1','Pata muslo',5,'unidades',CA]]),
+  mk0('d04','Tarta de jamón y queso','Plato Principal',4,[['d04i1','Tapa de tarta',1,'unidades',G],['d04i2','Queso cremon',250,'g',L],['d04i3','Jamón cocido',200,'g',CA],['d04i4','Huevos',2,'unidades',L],['d04i5','Crema',100,'ml',L]]),
+  mk0('d05','Tarta de zapallitos','Plato Principal',4,[['d05i1','Tapa de tarta',1,'unidades',G],['d05i2','Zapallitos',6,'unidades',V],['d05i3','Cebolla',1,'unidades',V],['d05i4','Huevos',1,'unidades',L],['d05i5','Crema',100,'ml',L],['d05i6','Queso cremon',150,'g',L],['d05i7','Sal',50,'g',E]]),
+  mk0('d06','Tortilla de papas','Plato Principal',4,[['d06i1','Papas',400,'g',V],['d06i2','Huevos',5,'unidades',L],['d06i3','Sal',50,'g',E]]),
+  mk0('d07','Hamburguesa','Plato Principal',4,[['d07i1','Carne picada',1000,'g',CA],['d07i2','Huevos',1,'unidades',L],['d07i3','Cebolla',1,'unidades',V],['d07i4','Pan rallado',200,'g',G]]),
+  mk0('d08','Carne al horno','Plato Principal',4,[['d08i1','Carne (cuadril/picaña/lomo/vacío)',2,'kg',CA]]),
+  mk0('d09','Atún','Plato Principal',1,[['d09i1','Atún en lomitos',1,'latas',K]]),
+  mk0('d10','Fideos con queso','Plato Principal',4,[['d10i1','Fideos (spaghetti/penne/tirabuzon)',1,'paquetes',G],['d10i2','Queso rallado',200,'g',L]]),
+  mk0('d11','Buñuelos de acelga','Plato Principal',4,[['d11i1','Acelga',1,'paquetes',V],['d11i2','Huevos',1,'unidades',L],['d11i3','Harina leudante',100,'g',G],['d11i4','Crema de leche',100,'ml',L],['d11i5','Sal',50,'g',E]]),
+  mk0('d12','Guiso de arroz','Plato Principal',4,[['d12i1','Arroz',300,'g',G],['d12i2','Zanahoria',1,'unidades',V],['d12i3','Carne (cuadril/picaña/lomo/vacío)',600,'g',CA],['d12i4','Cebolla',1,'unidades',V],['d12i5','Sal',50,'g',E],['d12i6','Pimienta',50,'g',E]]),
+  mk0('d13','Comida mexicana','Plato Principal',4,[['d13i1','Suprema de pollo',500,'g',CA],['d13i2','Zanahoria',1,'unidades',V],['d13i3','Morrón rojo',1,'unidades',V],['d13i4','Morrón verde',1,'unidades',V],['d13i5','Rapiditas',1.2,'paquetes',G],['d13i6','Tomate',1,'unidades',V],['d13i7','Sal',50,'g',E],['d13i8','Pimienta',50,'g',E],['d13i9','Pimentón',10,'g',E],['d13i10','Ají molido',10,'g',E],['d13i11','Casancrem',300,'g',L]]),
+  mk0('d14','Pastel de papas','Plato Principal',4,[['d14i1','Carne picada',1,'kg',CA],['d14i2','Papas',1,'kg',V],['d14i3','Leche',150,'ml',L],['d14i4','Manteca',50,'g',L],['d14i5','Aceitunas',100,'g',E],['d14i6','Huevos',2,'unidades',L],['d14i7','Morrón rojo',1,'unidades',V],['d14i8','Cebolla',1,'unidades',V],['d14i9','Sal',50,'g',E],['d14i10','Pimienta',50,'g',E],['d14i11','Salsa de tomate',200,'ml',K]]),
+  mk0('d15','Omelette JyQ','Plato Principal',2,[['d15i1','Huevos',3,'unidades',L],['d15i2','Queso cremon',100,'g',L],['d15i3','Jamón cocido',100,'g',CA]]),
+  mk0('d16','Pizza de muzzarella y jamón','Plato Principal',4,[['d16i1','Harina 0000',500,'g',G],['d16i2','Levadura fresca',50,'g',E],['d16i3','Aceite de girasol',100,'ml',E],['d16i4','Sal',50,'g',E],['d16i5','Azúcar',50,'g',E],['d16i6','Salsa de tomate',200,'ml',K],['d16i7','Condimento para pizza',100,'g',E],['d16i8','Muzzarella',250,'g',L],['d16i9','Jamón cocido',200,'g',CA]]),
+  mk0('d17','Empanadas de JyQ','Plato Principal',4,[['d17i1','Tapas de empanadas',6,'unidades',G],['d17i2','Jamón cocido',300,'g',CA],['d17i3','Queso cremon',300,'g',L],['d17i4','Huevos',1,'unidades',L],['d17i5','Sal',50,'g',E]]),
+  mk0('d18','Empanadas de carne','Plato Principal',4,[['d18i1','Tapas de empanadas',6,'unidades',G],['d18i2','Carne picada',300,'g',CA],['d18i3','Cebolla',1,'unidades',V],['d18i4','Morrón',1,'unidades',V],['d18i5','Huevos',2,'unidades',L],['d18i6','Sal',50,'g',E]]),
+  mk0('d19','Arroz','Guarnición',4,[['d19i1','Arroz',300,'g',G]]),
+  mk0('d20','Puré de papas','Guarnición',4,[['d20i1','Papas',500,'g',V],['d20i2','Leche',150,'ml',L],['d20i3','Manteca',50,'g',L],['d20i4','Sal',50,'g',E]]),
+  mk0('d21','Papas al horno','Guarnición',4,[['d21i1','Papas',300,'g',V]]),
+  mk0('d22','Ensalada rúcula y parmesano','Guarnición',4,[['d22i1','Rúcula',1,'paquetes',V],['d22i2','Queso de rallar',150,'g',L]]),
+  mk0('d23','Ensalada mixta','Guarnición',4,[['d23i1','Lechuga mantecosa',1,'paquetes',V],['d23i2','Tomate',2,'unidades',V],['d23i3','Zanahoria',1,'unidades',V],['d23i4','Huevos',2,'unidades',L]]),
+  mk0('d24','Brócoli','Guarnición',4,[['d24i1','Brócoli',2,'unidades',V]]),
+  mk0('d25','Choclo','Guarnición',4,[['d25i1','Choclo dulce',4,'unidades',V]]),
+  mk0('d26','Salsa de tomate casera','Guarnición',4,[['d26i1','Salsa de tomate',250,'ml',K],['d26i2','Cebolla',1,'unidades',V],['d26i3','Sal',50,'g',E]]),
+  mk0('d27','Queso y dulce de batata','Postres',4,[['d27i1','Queso cremon',100,'g',L],['d27i2','Dulce de batata',100,'g',K]]),
+  mk0('d28','Postre de manzana','Postres',4,[['d28i1','Manzanas verdes',2,'unidades',V],['d28i2','Avena',100,'g',G],['d28i3','Manteca',100,'g',L],['d28i4','Azúcar',50,'g',E],['d28i5','Harina 0000',20,'g',G]]),
+  mk0('d29','Banana','Postres',1,[['d29i1','Bananas',1,'unidades',V]]),
+  mk0('d30','Manzana','Postres',1,[['d30i1','Manzanas',1,'unidades',V]]),
+  mk0('d31','Pera','Postres',1,[['d31i1','Peras',1,'unidades',V]]),
+  mk0('d32','Uvas','Postres',4,[['d32i1','Uvas',200,'g',V]]),
+  mk0('d33','Rex','Snacks',1,[['d33i1','Rex',1,'paquetes',O]]),
+  mk0('d34','Chocolinas','Snacks',1,[['d34i1','Chocolinas',1,'paquetes',O]]),
+  mk0('d35','Pepitos','Snacks',1,[['d35i1','Pepitos',1,'paquetes',O]]),
+  mk0('d36','Vainillas','Snacks',1,[['d36i1','Vainillas',0.5,'paquetes',O]]),
   mk0('d37','Rapiditas de jamón y queso','Desayuno',1,[['d37i1','Rapiditas',0.2,'paquetes',G],['d37i2','Queso cremon',50,'g',L],['d37i3','Jamón cocido',30,'g',CA]]),
   mk0('d38','Yogurt con granola','Desayuno',1,[['d38i1','Yogurt natural',1,'paquetes',L],['d38i2','Granola',100,'g',G]]),
   mk0('d39','Tostadas con manteca y dulce','Desayuno',4,[['d39i1','Pan francés',150,'g',PA],['d39i2','Manteca',50,'g',L],['d39i3','Dulce de frutillas',50,'g',K]]),
@@ -624,6 +649,13 @@ function App(){
   const [shopChecked,setShopChecked]=useFirestoreSync('ms-shop-checked',{});
   const [week,setWeek]=useState(()=>getWeekKey());
   const [tab,setTab]=useState('planificador');
+
+  // Migrate old recipe categories to new ones
+  useEffect(()=>{
+    if(recetas.some(r=>CAT_MIGRATION[r.categoria])){
+      setRecetas(prev=>prev.map(r=>({...r,categoria:CAT_MIGRATION[r.categoria]||r.categoria})));
+    }
+  },[recetas,setRecetas]);
 
   const tabs=[['planificador','📅 Planificador'],['recetas','📖 Recetas'],['compras','🛒 Compras']];
 
