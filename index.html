@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menú Semanal</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyCtgPFALYGoMZ4yMsqSRD8H7cP4oSRYCH8",
+  authDomain:"menu-semanal-5683f.firebaseapp.com",
+  projectId:"menu-semanal-5683f",
+  storageBucket:"menu-semanal-5683f.firebasestorage.app",
+  messagingSenderId:"366406185337",
+  appId:"1:366406185337:web:2468cbef7ed9713b2dffa8"
+});
+const db = firebase.firestore();
+</script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -114,7 +127,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useMemo,useCallback} = React;
+const {useState,useEffect,useMemo,useCallback,useRef} = React;
 
 const DAYS_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const DAYS_KEY   = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
@@ -151,10 +164,44 @@ function fmtDate(d){return d.toLocaleDateString('es-AR',{day:'numeric',month:'sh
 function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
 function fmtQty(n){if(!n)return'0';return Number.isInteger(n)?String(n):parseFloat(n.toFixed(1)).toString();}
 
-function useLS(key,init){
-  const [v,setV]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
-  useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v));}catch{}},[key,v]);
-  return [v,setV];
+// Sincroniza con Firestore en tiempo real + caché local
+function useFirestoreSync(docId, defaultValue) {
+  const [v, setV] = useState(() => {
+    try { const s=localStorage.getItem(docId); return s?JSON.parse(s):defaultValue; } catch { return defaultValue; }
+  });
+  const timerRef = useRef(null);
+  const latestRef = useRef(v);
+
+  useEffect(() => {
+    const ref = db.collection('app').doc(docId);
+    const unsub = ref.onSnapshot(snap => {
+      if (snap.exists) {
+        const val = snap.data().v;
+        latestRef.current = val;
+        setV(val);
+        try { localStorage.setItem(docId, JSON.stringify(val)); } catch {}
+      } else {
+        // Primera vez: inicializar Firestore con el valor actual
+        ref.set({ v: latestRef.current }).catch(() => {});
+      }
+    }, err => console.warn('Firestore:', docId, err.message));
+    return () => unsub();
+  }, [docId]);
+
+  const set = useCallback((newValOrFn) => {
+    setV(prev => {
+      const next = typeof newValOrFn === 'function' ? newValOrFn(prev) : newValOrFn;
+      latestRef.current = next;
+      try { localStorage.setItem(docId, JSON.stringify(next)); } catch {}
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        db.collection('app').doc(docId).set({ v: next }).catch(() => {});
+      }, 400);
+      return next;
+    });
+  }, [docId]);
+
+  return [v, set];
 }
 
 // ── RECETA MODAL ─────────────────────────────────────────────────────────────
@@ -567,10 +614,10 @@ const DEFAULT_RECETAS = [
 
 // ── APP ──────────────────────────────────────────────────────────────────────
 function App(){
-  const [recetas,setRecetas]=useLS('ms-recetas', DEFAULT_RECETAS);
-  const [plan,setPlan]=useLS('ms-plan',{});
-  const [personas,setPersonas]=useLS('ms-personas',5);
-  const [shopChecked,setShopChecked]=useLS('ms-shop-checked',{});
+  const [recetas,setRecetas]=useFirestoreSync('ms-recetas', DEFAULT_RECETAS);
+  const [plan,setPlan]=useFirestoreSync('ms-plan',{});
+  const [personas,setPersonas]=useFirestoreSync('ms-personas',5);
+  const [shopChecked,setShopChecked]=useFirestoreSync('ms-shop-checked',{});
   const [week,setWeek]=useState(()=>getWeekKey());
   const [tab,setTab]=useState('planificador');
 
