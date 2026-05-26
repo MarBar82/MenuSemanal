@@ -39,7 +39,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-ghost{background:none;border:none;color:#718096;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .2s;font-size:15px}.btn-ghost:hover{background:#f7fafc;color:#2d3748}
 .fab{position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;background:#27ae60;color:#fff;border:none;cursor:pointer;font-size:26px;box-shadow:0 4px 16px rgba(39,174,96,.4);display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:50}
 .fab:hover{background:#219a52;transform:scale(1.06)}
-.search-bar{margin-bottom:20px;display:flex;gap:12px;align-items:center}
+.search-bar{margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.cat-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.cat-filter{padding:4px 12px;border-radius:20px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;color:#4a5568;font-family:inherit}
+.cat-filter:hover{border-color:#27ae60;color:#27ae60}
+.cat-filter.on{background:#27ae60;border-color:#27ae60;color:#fff}
 .search-input{flex:1;padding:10px 14px;border:1.5px solid #cbd5e0;border-radius:10px;font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
 .search-input:focus{border-color:#27ae60}
 .recetas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:16px}
@@ -288,12 +292,17 @@ function RecetaModal({receta,onSave,onClose}){
 // ── RECETAS TAB ──────────────────────────────────────────────────────────────
 function RecetasTab({recetas,setRecetas}){
   const [search,setSearch]=useState('');
+  const [catFilter,setCatFilter]=useState('');
   const [modal,setModal]=useState(null);
 
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
-    return recetas.filter(r=>r.nombre.toLowerCase().includes(q)||r.categoria.toLowerCase().includes(q));
-  },[recetas,search]);
+    return recetas.filter(r=>{
+      const matchSearch=!q||r.nombre.toLowerCase().includes(q);
+      const matchCat=!catFilter||r.categoria===catFilter;
+      return matchSearch&&matchCat;
+    });
+  },[recetas,search,catFilter]);
 
   const save=r=>{
     setRecetas(prev=>{const idx=prev.findIndex(x=>x.id===r.id);if(idx>=0){const n=[...prev];n[idx]=r;return n;}return[...prev,r];});
@@ -306,6 +315,10 @@ function RecetasTab({recetas,setRecetas}){
       <div className="search-bar">
         <input className="search-input" placeholder="Buscar recetas..." value={search} onChange={e=>setSearch(e.target.value)}/>
         <button className="btn btn-primary" onClick={()=>setModal('add')}>+ Nueva receta</button>
+      </div>
+      <div className="cat-filters">
+        <button className={`cat-filter ${!catFilter?'on':''}`} onClick={()=>setCatFilter('')}>Todas</button>
+        {RECIPE_CATS.map(c=><button key={c} className={`cat-filter ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(p=>p===c?'':c)}>{CAT_EMO[c]} {c}</button>)}
       </div>
       {filtered.length===0?(
         <div className="empty-state">
@@ -347,7 +360,12 @@ function RecetasTab({recetas,setRecetas}){
 // ── RECIPE PICKER MODAL ──────────────────────────────────────────────────────
 function PickerModal({recetas,slot,onSelect,onClose}){
   const [search,setSearch]=useState('');
-  const list=recetas.filter(r=>!search||r.nombre.toLowerCase().includes(search.toLowerCase())||r.categoria.toLowerCase().includes(search.toLowerCase()));
+  const [catFilter,setCatFilter]=useState('');
+  const list=recetas.filter(r=>{
+    const matchSearch=!search||r.nombre.toLowerCase().includes(search.toLowerCase());
+    const matchCat=!catFilter||r.categoria===catFilter;
+    return matchSearch&&matchCat;
+  });
   return(
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
@@ -356,7 +374,11 @@ function PickerModal({recetas,slot,onSelect,onClose}){
           <button className="btn-ghost" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <input className="search-input" style={{width:'100%',marginBottom:12}} placeholder="Buscar receta..." value={search} onChange={e=>setSearch(e.target.value)} autoFocus/>
+          <input className="search-input" style={{width:'100%',marginBottom:10}} placeholder="Buscar receta..." value={search} onChange={e=>setSearch(e.target.value)} autoFocus/>
+          <div className="cat-filters">
+            <button className={`cat-filter ${!catFilter?'on':''}`} onClick={()=>setCatFilter('')}>Todas</button>
+            {RECIPE_CATS.map(c=><button key={c} className={`cat-filter ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(p=>p===c?'':c)}>{CAT_EMO[c]} {c}</button>)}
+          </div>
           {list.length===0?(
             <div style={{textAlign:'center',padding:'36px 0',color:'#a0aec0'}}>No se encontraron recetas</div>
           ):(
