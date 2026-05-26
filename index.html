@@ -175,13 +175,17 @@ function useFirestoreSync(docId, defaultValue) {
   useEffect(() => {
     const ref = db.collection('app').doc(docId);
     const unsub = ref.onSnapshot(snap => {
-      if (snap.exists) {
-        const val = snap.data().v;
-        latestRef.current = val;
-        setV(val);
-        try { localStorage.setItem(docId, JSON.stringify(val)); } catch {}
+      const stored = snap.exists ? snap.data().v : undefined;
+      // Considerar vacío: undefined, null, o array vacío cuando el default no lo es
+      const esVacio = stored === undefined || stored === null ||
+        (Array.isArray(stored) && stored.length === 0 &&
+         Array.isArray(defaultValue) && defaultValue.length > 0);
+      if (!esVacio) {
+        latestRef.current = stored;
+        setV(stored);
+        try { localStorage.setItem(docId, JSON.stringify(stored)); } catch {}
       } else {
-        // Primera vez: inicializar Firestore con el valor actual
+        // Firestore vacío o inexistente → escribir valor actual (default)
         ref.set({ v: latestRef.current }).catch(() => {});
       }
     }, err => console.warn('Firestore:', docId, err.message));
