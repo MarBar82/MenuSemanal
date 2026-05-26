@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menú Semanal</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;color:#2d3748;min-height:100vh}
+.app-header{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);flex-wrap:wrap}
+.app-logo{font-size:22px;font-weight:900;color:#27ae60;white-space:nowrap;padding:14px 0}.app-logo span{color:#2d3748}
+.nav-tabs{display:flex;gap:2px;flex:1}
+.nav-tab{padding:14px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#718096;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;font-weight:500;white-space:nowrap}
+.nav-tab:hover{color:#27ae60}.nav-tab.active{color:#27ae60;border-bottom-color:#27ae60;font-weight:700}
+.personas-ctrl{display:flex;align-items:center;gap:8px;padding:6px 14px;background:#f7fafc;border-radius:8px;font-size:14px;font-weight:500;color:#4a5568;white-space:nowrap;margin:8px 0}
+.personas-ctrl input{width:46px;padding:3px 6px;border:1.5px solid #cbd5e0;border-radius:6px;font-size:15px;text-align:center;font-weight:700;color:#27ae60;outline:none}
+.tab-content{max-width:1200px;margin:0 auto;padding:24px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;font-family:inherit}
+.btn-primary{background:#27ae60;color:#fff}.btn-primary:hover{background:#219a52}
+.btn-secondary{background:#fff;color:#4a5568;border:1.5px solid #cbd5e0}.btn-secondary:hover{border-color:#27ae60;color:#27ae60}
+.btn-danger{background:#fff;color:#e53e3e;border:1.5px solid #fed7d7}.btn-danger:hover{background:#fff5f5}
+.btn-sm{padding:5px 12px;font-size:13px;border-radius:6px}
+.btn-ghost{background:none;border:none;color:#718096;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .2s;font-size:15px}.btn-ghost:hover{background:#f7fafc;color:#2d3748}
+.fab{position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;background:#27ae60;color:#fff;border:none;cursor:pointer;font-size:26px;box-shadow:0 4px 16px rgba(39,174,96,.4);display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:50}
+.fab:hover{background:#219a52;transform:scale(1.06)}
+.search-bar{margin-bottom:20px;display:flex;gap:12px;align-items:center}
+.search-input{flex:1;padding:10px 14px;border:1.5px solid #cbd5e0;border-radius:10px;font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
+.search-input:focus{border-color:#27ae60}
+.recetas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:16px}
+.receta-card{background:#fff;border-radius:12px;border:1.5px solid #e8ecf0;padding:16px;transition:all .2s}
+.receta-card:hover{border-color:#27ae60;box-shadow:0 4px 12px rgba(39,174,96,.12)}
+.receta-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.receta-name{font-size:16px;font-weight:700;color:#1a202c;line-height:1.3}
+.r-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600;margin-top:5px}
+.b-desayuno{background:#fef3c7;color:#b45309}.b-almuerzo{background:#dcfce7;color:#166534}
+.b-cena{background:#ede9fe;color:#5b21b6}.b-merienda{background:#fce7f3;color:#9d174d}
+.b-postre{background:#fef9c3;color:#854d0e}.b-otro{background:#f1f5f9;color:#475569}
+.receta-actions{display:flex;gap:2px;flex-shrink:0}
+.receta-porciones{font-size:13px;color:#718096;margin-bottom:8px}
+.ing-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ing-chip{background:#f7fafc;padding:3px 8px;border-radius:20px;font-size:12px;color:#4a5568;border:1px solid #e8ecf0}
+.empty-state{text-align:center;padding:60px 20px;color:#a0aec0}
+.empty-icon{font-size:60px;margin-bottom:16px}
+.empty-state h3{font-size:19px;font-weight:700;color:#718096;margin-bottom:8px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;backdrop-filter:blur(3px)}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-lg{max-width:700px}
+.modal-header{padding:18px 24px 14px;border-bottom:1px solid #e8ecf0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-radius:16px 16px 0 0}
+.modal-title{font-size:19px;font-weight:800;color:#2d3748}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:14px 24px 18px;border-top:1px solid #e8ecf0;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;border-radius:0 0 16px 16px}
+.form-group{margin-bottom:15px}
+.form-label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.form-input,.form-select{width:100%;padding:9px 11px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:14px;outline:none;transition:border-color .2s;background:#fff;color:#2d3748;font-family:inherit}
+.form-input:focus,.form-select:focus{border-color:#27ae60}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ing-header{display:grid;grid-template-columns:1.8fr .9fr 1.1fr 1.4fr 36px;gap:6px;padding:4px 0;margin-bottom:4px}
+.ing-header span{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.4px}
+.ing-row{display:grid;grid-template-columns:1.8fr .9fr 1.1fr 1.4fr 36px;gap:6px;align-items:center;margin-bottom:7px}
+.planner-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.week-nav{display:flex;align-items:center;gap:10px}
+.week-label{font-size:17px;font-weight:800;color:#2d3748;min-width:170px;text-align:center}
+.week-sub{font-size:12px;color:#718096;text-align:center;margin-top:1px}
+.grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.plan-grid{display:grid;grid-template-columns:90px repeat(7,minmax(120px,1fr));min-width:930px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff}
+.col-header{background:#f7fafc;padding:10px 6px;text-align:center;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
+.col-header:last-child{border-right:none}
+.col-header.today .day-name{color:#27ae60}.col-header.today .day-date{color:#27ae60}
+.day-name{font-size:12px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.4px}
+.day-date{font-size:11px;color:#a0aec0;margin-top:2px}
+.meal-header{background:#f7fafc;padding:10px 8px;display:flex;align-items:center;gap:6px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
+.meal-icon-label{font-size:13px;font-weight:700;color:#4a5568}
+.meal-cell{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;min-height:78px;padding:6px;display:flex;align-items:stretch}
+.meal-cell:last-child{border-right:none}
+.cell-empty{width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;transition:background .15s;color:#cbd5e0;font-size:22px}
+.cell-empty:hover{background:#f0fff4;color:#27ae60}
+.cell-filled{width:100%;background:#f0fff4;border-radius:6px;border:1.5px solid #c6f6d5;padding:7px;cursor:pointer;position:relative}
+.cell-filled:hover{border-color:#27ae60;background:#dcfce7}
+.cell-recipe-name{font-size:12px;font-weight:700;color:#1a202c;line-height:1.3}
+.cell-porciones{font-size:11px;color:#718096;margin-top:3px}
+.cell-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid #e2e8f0;color:#a0aec0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all .2s;opacity:0;line-height:1}
+.cell-filled:hover .cell-remove{opacity:1}
+.cell-remove:hover{background:#e53e3e;color:#fff;border-color:#e53e3e}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;max-height:380px;overflow-y:auto;padding:2px}
+.picker-item{padding:11px;border:1.5px solid #e8ecf0;border-radius:10px;cursor:pointer;transition:all .2s}
+.picker-item:hover{border-color:#27ae60;background:#f0fff4}
+.picker-item.sel{border-color:#27ae60;background:#f0fff4}
+.pi-name{font-size:13px;font-weight:700;color:#2d3748}
+.pi-meta{font-size:12px;color:#718096;margin-top:3px}
+.shop-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.shop-week-info{font-size:14px;color:#4a5568;font-weight:500;margin-top:3px}
+.shop-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cat-group{background:#fff;border-radius:12px;border:1.5px solid #e8ecf0;margin-bottom:14px;overflow:hidden}
+.cat-group-hdr{padding:11px 18px;background:#f7fafc;border-bottom:1px solid #e8ecf0;display:flex;align-items:center;gap:8px}
+.cat-title{font-size:14px;font-weight:700;color:#2d3748;flex:1}
+.cat-count{font-size:12px;color:#718096;background:#edf2f7;padding:2px 8px;border-radius:10px}
+.shop-item{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #f7fafc;transition:background .1s;cursor:pointer}
+.shop-item:last-child{border-bottom:none}
+.shop-item:hover{background:#fafafa}
+.shop-item.done{opacity:.45}
+.shop-cb{width:18px;height:18px;accent-color:#27ae60;cursor:pointer;flex-shrink:0}
+.shop-name{flex:1;font-size:14px;color:#2d3748;font-weight:500}
+.shop-item.done .shop-name{text-decoration:line-through;color:#a0aec0}
+.shop-qty{font-size:14px;font-weight:700;color:#27ae60}
+.shop-unit{font-size:13px;color:#718096;margin-left:3px}
+@media print{.app-header,.btn,.fab,.shop-cb,.no-print{display:none!important}.tab-content{padding:0;max-width:100%}.cat-group{break-inside:avoid}}
+@media(max-width:640px){.app-header{padding:0 12px}.nav-tab{padding:12px 10px;font-size:13px}.tab-content{padding:16px 10px}.form-row-2{grid-template-columns:1fr}.ing-header,.ing-row{grid-template-columns:1fr 70px 90px 1fr 32px}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback} = React;
+
+const DAYS_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const DAYS_KEY   = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+const MEALS      = ['desayuno','almuerzo','cena'];
+const MEAL_LBL   = {desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'};
+const MEAL_ICO   = {desayuno:'🌅',almuerzo:'🍽️',cena:'🌙'};
+const RECIPE_CATS = ['Desayuno','Almuerzo','Cena','Merienda','Postre','Otro'];
+const ING_CATS   = ['Verduras y frutas','Carnes y pescados','Lácteos y huevos','Granos, harinas y pastas','Conservas y enlatados','Condimentos y especias','Panificados','Bebidas','Otros'];
+const CAT_ICO    = {'Verduras y frutas':'🥦','Carnes y pescados':'🥩','Lácteos y huevos':'🥛','Granos, harinas y pastas':'🌾','Conservas y enlatados':'🥫','Condimentos y especias':'🧂','Panificados':'🍞','Bebidas':'🥤','Otros':'📦'};
+const UNITS      = ['g','kg','ml','l','unidades','tazas','cucharadas','cucharaditas','pizcas','dientes','ramas','paquetes','latas','fetas'];
+const BADGE_CLS  = {Desayuno:'b-desayuno',Almuerzo:'b-almuerzo',Cena:'b-cena',Merienda:'b-merienda',Postre:'b-postre',Otro:'b-otro'};
+const CAT_EMO    = {Desayuno:'🌅',Almuerzo:'☀️',Cena:'🌙',Merienda:'☕',Postre:'🍮',Otro:'🍴'};
+
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2);
+
+function getWeekKey(date=new Date()){
+  const d=new Date(date); d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+3-((d.getDay()+6)%7));
+  const y=d.getFullYear(), w1=new Date(y,0,4);
+  const w=1+Math.round(((d-w1)/86400000-3+((w1.getDay()+6)%7))/7);
+  return `${y}-W${String(w).padStart(2,'0')}`;
+}
+function getWeekStart(key){
+  const [ys,ws]=key.split('-W'); const y=+ys,w=+ws;
+  const jan4=new Date(y,0,4);
+  return new Date(jan4.getTime()+((w-1)*7-((jan4.getDay()+6)%7))*86400000);
+}
+function getWeekDates(key){
+  const s=getWeekStart(key);
+  return Array.from({length:7},(_,i)=>{const d=new Date(s);d.setDate(d.getDate()+i);return d;});
+}
+function addWeeks(key,n){const s=getWeekStart(key);s.setDate(s.getDate()+n*7);return getWeekKey(s);}
+function fmtDate(d){return d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});}
+function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
+function fmtQty(n){if(!n)return'0';return Number.isInteger(n)?String(n):parseFloat(n.toFixed(1)).toString();}
+
+function useLS(key,init){
+  const [v,setV]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
+  useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v));}catch{}},[key,v]);
+  return [v,setV];
+}
+
+// ── RECETA MODAL ─────────────────────────────────────────────────────────────
+const mkReceta=()=>({id:uid(),nombre:'',categoria:'Almuerzo',porcionesBase:4,ingredientes:[]});
+const mkIng=()=>({id:uid(),nombre:'',cantidad:'',unidad:'g',categoria:'Otros'});
+
+function RecetaModal({receta,onSave,onClose}){
+  const [f,setF]=useState(()=>receta?{...receta,ingredientes:receta.ingredientes.map(i=>({...i}))}:mkReceta());
+  const set=(k,v)=>setF(p=>({...p,[k]:v}));
+  const addI=()=>setF(p=>({...p,ingredientes:[...p.ingredientes,mkIng()]}));
+  const delI=id=>setF(p=>({...p,ingredientes:p.ingredientes.filter(i=>i.id!==id)}));
+  const setI=(id,k,v)=>setF(p=>({...p,ingredientes:p.ingredientes.map(i=>i.id===id?{...i,[k]:v}:i)}));
+
+  const save=()=>{
+    if(!f.nombre.trim()){alert('Ingresá el nombre de la receta');return;}
+    onSave({...f,nombre:f.nombre.trim(),porcionesBase:Math.max(1,parseInt(f.porcionesBase)||1),
+      ingredientes:f.ingredientes.filter(i=>i.nombre.trim()).map(i=>({...i,nombre:i.nombre.trim(),cantidad:parseFloat(i.cantidad)||0}))});
+  };
+
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal modal-lg">
+        <div className="modal-header">
+          <span className="modal-title">{receta?'Editar receta':'Nueva receta'}</span>
+          <button className="btn-ghost" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Nombre de la receta</label>
+            <input className="form-input" value={f.nombre} onChange={e=>set('nombre',e.target.value)} placeholder="Ej: Milanesas con papas" autoFocus/>
+          </div>
+          <div className="form-row-2">
+            <div className="form-group">
+              <label className="form-label">Categoría</label>
+              <select className="form-select" value={f.categoria} onChange={e=>set('categoria',e.target.value)}>
+                {RECIPE_CATS.map(c=><option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Porciones base</label>
+              <input className="form-input" type="number" min="1" value={f.porcionesBase} onChange={e=>set('porcionesBase',e.target.value)}/>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Ingredientes</label>
+            {f.ingredientes.length>0&&(
+              <div className="ing-header">
+                <span>Ingrediente</span><span>Cantidad</span><span>Unidad</span><span>Categoría de compra</span><span></span>
+              </div>
+            )}
+            {f.ingredientes.map(i=>(
+              <div key={i.id} className="ing-row">
+                <input className="form-input" placeholder="Nombre" value={i.nombre} onChange={e=>setI(i.id,'nombre',e.target.value)}/>
+                <input className="form-input" type="number" min="0" step="0.1" placeholder="0" value={i.cantidad} onChange={e=>setI(i.id,'cantidad',e.target.value)}/>
+                <select className="form-select" value={i.unidad} onChange={e=>setI(i.id,'unidad',e.target.value)}>
+                  {UNITS.map(u=><option key={u}>{u}</option>)}
+                </select>
+                <select className="form-select" value={i.categoria} onChange={e=>setI(i.id,'categoria',e.target.value)}>
+                  {ING_CATS.map(c=><option key={c}>{c}</option>)}
+                </select>
+                <button className="btn btn-danger btn-sm" onClick={()=>delI(i.id)} style={{padding:'5px 8px'}}>✕</button>
+              </div>
+            ))}
+            <button className="btn btn-secondary btn-sm" onClick={addI} style={{marginTop:6}}>+ Agregar ingrediente</button>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" onClick={save}>Guardar receta</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── RECETAS TAB ──────────────────────────────────────────────────────────────
+function RecetasTab({recetas,setRecetas}){
+  const [search,setSearch]=useState('');
+  const [modal,setModal]=useState(null);
+
+  const filtered=useMemo(()=>{
+    const q=search.toLowerCase();
+    return recetas.filter(r=>r.nombre.toLowerCase().includes(q)||r.categoria.toLowerCase().includes(q));
+  },[recetas,search]);
+
+  const save=r=>{
+    setRecetas(prev=>{const idx=prev.findIndex(x=>x.id===r.id);if(idx>=0){const n=[...prev];n[idx]=r;return n;}return[...prev,r];});
+    setModal(null);
+  };
+  const del=id=>{if(!confirm('¿Eliminar esta receta?'))return;setRecetas(p=>p.filter(r=>r.id!==id));};
+
+  return(
+    <div>
+      <div className="search-bar">
+        <input className="search-input" placeholder="Buscar recetas..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <button className="btn btn-primary" onClick={()=>setModal('add')}>+ Nueva receta</button>
+      </div>
+      {filtered.length===0?(
+        <div className="empty-state">
+          <div className="empty-icon">{search?'🔍':'🍳'}</div>
+          <h3>{search?'No se encontraron recetas':'No tenés recetas todavía'}</h3>
+          <p>{search?`No hay recetas que coincidan con "${search}"`:'Agregá tus primeras recetas para empezar a planificar.'}</p>
+        </div>
+      ):(
+        <div className="recetas-grid">
+          {filtered.map(r=>(
+            <div key={r.id} className="receta-card">
+              <div className="receta-card-top">
+                <div>
+                  <div className="receta-name">{r.nombre}</div>
+                  <span className={`r-badge ${BADGE_CLS[r.categoria]||'b-otro'}`}>{CAT_EMO[r.categoria]} {r.categoria}</span>
+                </div>
+                <div className="receta-actions">
+                  <button className="btn-ghost" title="Editar" onClick={()=>setModal(r)}>✏️</button>
+                  <button className="btn-ghost" title="Eliminar" onClick={()=>del(r.id)}>🗑️</button>
+                </div>
+              </div>
+              <div className="receta-porciones">👥 Para {r.porcionesBase} {r.porcionesBase===1?'porción':'porciones'}</div>
+              {r.ingredientes.length>0?(
+                <div className="ing-chips">
+                  {r.ingredientes.slice(0,7).map(i=><span key={i.id} className="ing-chip">{i.nombre}</span>)}
+                  {r.ingredientes.length>7&&<span className="ing-chip">+{r.ingredientes.length-7} más</span>}
+                </div>
+              ):<div style={{fontSize:13,color:'#a0aec0',fontStyle:'italic'}}>Sin ingredientes cargados</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      {modal&&<RecetaModal receta={modal==='add'?null:modal} onSave={save} onClose={()=>setModal(null)}/>}
+      <button className="fab" onClick={()=>setModal('add')} title="Nueva receta">+</button>
+    </div>
+  );
+}
+
+// ── RECIPE PICKER MODAL ──────────────────────────────────────────────────────
+function PickerModal({recetas,slot,onSelect,onRemove,onClose}){
+  const [search,setSearch]=useState('');
+  const list=recetas.filter(r=>!search||r.nombre.toLowerCase().includes(search.toLowerCase())||r.categoria.toLowerCase().includes(search.toLowerCase()));
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">{MEAL_ICO[slot.meal]} {MEAL_LBL[slot.meal]} — {DAYS_SHORT[slot.dayIdx]}</span>
+          <button className="btn-ghost" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <input className="search-input" style={{width:'100%',marginBottom:12}} placeholder="Buscar receta..." value={search} onChange={e=>setSearch(e.target.value)} autoFocus/>
+          {list.length===0?(
+            <div style={{textAlign:'center',padding:'36px 0',color:'#a0aec0'}}>No se encontraron recetas</div>
+          ):(
+            <div className="picker-grid">
+              {list.map(r=>(
+                <div key={r.id} className={`picker-item ${slot.currentId===r.id?'sel':''}`} onClick={()=>{onSelect(r.id);onClose();}}>
+                  <div className="pi-name">{r.nombre}</div>
+                  <div className="pi-meta">{CAT_EMO[r.categoria]} {r.categoria} · {r.porcionesBase} porciones</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          {slot.currentId&&<button className="btn btn-danger" onClick={()=>{onRemove();onClose();}}>Quitar receta</button>}
+          <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PLANIFICADOR TAB ─────────────────────────────────────────────────────────
+function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWeek}){
+  const [picker,setPicker]=useState(null);
+  const dates=getWeekDates(currentWeek);
+
+  const getSlot=(day,meal)=>plan[currentWeek]?.[day]?.[meal]||null;
+  const setSlot=(day,meal,val)=>setPlan(p=>({...p,[currentWeek]:{...(p[currentWeek]||{}),[day]:{...((p[currentWeek]||{})[day]||{}),[meal]:val}}}));
+
+  const openPicker=(di,meal)=>{
+    const s=getSlot(DAYS_KEY[di],meal);
+    setPicker({dayIdx:di,meal,day:DAYS_KEY[di],currentId:s?.recipeId||null});
+  };
+
+  return(
+    <div>
+      <div className="planner-header">
+        <div className="week-nav">
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(addWeeks(currentWeek,-1))}>← Anterior</button>
+          <div>
+            <div className="week-label">Semana {currentWeek.split('-W')[1]}, {currentWeek.split('-W')[0]}</div>
+            <div className="week-sub">{fmtDate(dates[0])} al {fmtDate(dates[6])}</div>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(addWeeks(currentWeek,1))}>Siguiente →</button>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(getWeekKey())}>Hoy</button>
+          <button className="btn btn-danger btn-sm" onClick={()=>{if(!confirm('¿Limpiar toda la semana?'))return;setPlan(p=>{const n={...p};delete n[currentWeek];return n;});}}>Limpiar semana</button>
+        </div>
+      </div>
+
+      {recetas.length===0?(
+        <div className="empty-state">
+          <div className="empty-icon">📋</div>
+          <h3>Primero cargá tus recetas</h3>
+          <p>Andá a la pestaña <strong>Recetas</strong> y agregá tus platos favoritos.</p>
+        </div>
+      ):(
+        <div className="grid-wrap">
+          <div className="plan-grid">
+            <div className="col-header" style={{background:'#fff'}}><div className="day-name" style={{color:'#a0aec0'}}>Comida</div></div>
+            {DAYS_SHORT.map((d,i)=>(
+              <div key={d} className={`col-header ${isToday(dates[i])?'today':''}`}>
+                <div className="day-name">{d}</div>
+                <div className="day-date">{fmtDate(dates[i])}</div>
+              </div>
+            ))}
+            {MEALS.map((meal,mi)=>(
+              <React.Fragment key={meal}>
+                <div className="meal-header" style={mi===MEALS.length-1?{borderBottom:'none'}:{}}>
+                  <span style={{fontSize:16}}>{MEAL_ICO[meal]}</span>
+                  <span className="meal-icon-label">{MEAL_LBL[meal]}</span>
+                </div>
+                {DAYS_KEY.map((day,di)=>{
+                  const slot=getSlot(day,meal);
+                  const recipe=slot?recetas.find(r=>r.id===slot.recipeId):null;
+                  return(
+                    <div key={day} className="meal-cell" style={mi===MEALS.length-1?{borderBottom:'none'}:{}}>
+                      {recipe?(
+                        <div className="cell-filled" onClick={()=>openPicker(di,meal)}>
+                          <div className="cell-recipe-name">{recipe.nombre}</div>
+                          <div className="cell-porciones">👥 {slot.porciones} porciones</div>
+                          <button className="cell-remove" onClick={e=>{e.stopPropagation();setSlot(day,meal,null);}}>✕</button>
+                        </div>
+                      ):(
+                        <div className="cell-empty" onClick={()=>openPicker(di,meal)}>+</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {picker&&(
+        <PickerModal recetas={recetas} slot={picker}
+          onSelect={id=>setSlot(picker.day,picker.meal,{recipeId:id,porciones:personas})}
+          onRemove={()=>setSlot(picker.day,picker.meal,null)}
+          onClose={()=>setPicker(null)}/>
+      )}
+    </div>
+  );
+}
+
+// ── LISTA DE COMPRAS ─────────────────────────────────────────────────────────
+function calcList(plan,recetas,weekKey,personas){
+  const wp=plan[weekKey]||{};
+  const totals={};
+  for(const day of DAYS_KEY){
+    for(const meal of MEALS){
+      const slot=wp[day]?.[meal];
+      if(!slot)continue;
+      const rec=recetas.find(r=>r.id===slot.recipeId);
+      if(!rec)continue;
+      const mult=(slot.porciones||personas)/(rec.porcionesBase||1);
+      for(const ing of rec.ingredientes){
+        const k=`${ing.nombre.toLowerCase()}||${ing.unidad}`;
+        if(!totals[k])totals[k]={nombre:ing.nombre,unidad:ing.unidad,cat:ing.categoria,qty:0};
+        totals[k].qty+=ing.cantidad*mult;
+      }
+    }
+  }
+  const groups={};
+  for(const item of Object.values(totals)){
+    if(!groups[item.cat])groups[item.cat]=[];
+    groups[item.cat].push(item);
+  }
+  for(const c in groups)groups[c].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  return groups;
+}
+
+function ListaComprasTab({recetas,plan,personas,currentWeek,setCurrentWeek,shopChecked,setShopChecked}){
+  const groups=useMemo(()=>calcList(plan,recetas,currentWeek,personas),[plan,recetas,currentWeek,personas]);
+  const dates=getWeekDates(currentWeek);
+  const checked=shopChecked[currentWeek]||{};
+  const toggle=k=>setShopChecked(p=>({...p,[currentWeek]:{...(p[currentWeek]||{}),[k]:!(p[currentWeek]||{})[k]}}));
+  const clearAll=()=>setShopChecked(p=>({...p,[currentWeek]:{}}));
+  const hasItems=Object.keys(groups).length>0;
+
+  const copyList=()=>{
+    let t=`Lista de compras — ${fmtDate(dates[0])} al ${fmtDate(dates[6])}\n\n`;
+    for(const cat of ING_CATS){
+      if(!groups[cat])continue;
+      t+=`${CAT_ICO[cat]} ${cat}\n`;
+      for(const i of groups[cat])t+=`  - ${i.nombre}: ${fmtQty(i.qty)} ${i.unidad}\n`;
+      t+='\n';
+    }
+    navigator.clipboard.writeText(t).then(()=>alert('Lista copiada ✓')).catch(()=>alert('No se pudo copiar'));
+  };
+
+  return(
+    <div>
+      <div className="shop-header">
+        <div>
+          <div style={{fontWeight:800,fontSize:20,color:'#2d3748'}}>Lista de compras</div>
+          <div className="shop-week-info">Semana {currentWeek.split('-W')[1]} · {fmtDate(dates[0])} al {fmtDate(dates[6])} · 👥 {personas} personas</div>
+        </div>
+        <div className="shop-actions no-print">
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(addWeeks(currentWeek,-1))}>← Anterior</button>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(getWeekKey())}>Esta semana</button>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(addWeeks(currentWeek,1))}>Siguiente →</button>
+          {hasItems&&<>
+            <button className="btn btn-secondary btn-sm" onClick={clearAll}>Desmarcar todo</button>
+            <button className="btn btn-secondary btn-sm" onClick={copyList}>📋 Copiar</button>
+            <button className="btn btn-secondary btn-sm" onClick={()=>window.print()}>🖨️ Imprimir</button>
+          </>}
+        </div>
+      </div>
+
+      {!hasItems?(
+        <div style={{textAlign:'center',padding:'60px 20px',color:'#a0aec0'}}>
+          <div style={{fontSize:60,marginBottom:16}}>🛒</div>
+          <h3 style={{fontSize:19,fontWeight:700,color:'#718096',marginBottom:8}}>No hay comidas planificadas esta semana</h3>
+          <p>Armá el menú en el <strong>Planificador</strong> y la lista se genera sola.</p>
+        </div>
+      ):(
+        ING_CATS.filter(c=>groups[c]).map(cat=>{
+          const items=groups[cat];
+          const allDone=items.every(i=>checked[`${i.nombre}||${i.unidad}`]);
+          return(
+            <div key={cat} className="cat-group">
+              <div className="cat-group-hdr">
+                <span style={{fontSize:18}}>{CAT_ICO[cat]}</span>
+                <span className="cat-title">{cat}</span>
+                <span className="cat-count">{items.length} ítem{items.length!==1?'s':''}</span>
+                {allDone&&<span style={{fontSize:12,color:'#27ae60',fontWeight:700}}>✓ Completo</span>}
+              </div>
+              {items.map(item=>{
+                const k=`${item.nombre}||${item.unidad}`;
+                return(
+                  <div key={k} className={`shop-item ${checked[k]?'done':''}`} onClick={()=>toggle(k)}>
+                    <input type="checkbox" className="shop-cb" checked={!!checked[k]} onChange={()=>toggle(k)} onClick={e=>e.stopPropagation()}/>
+                    <span className="shop-name">{item.nombre}</span>
+                    <span><span className="shop-qty">{fmtQty(item.qty)}</span><span className="shop-unit">{item.unidad}</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+// ── APP ──────────────────────────────────────────────────────────────────────
+function App(){
+  const [recetas,setRecetas]=useLS('ms-recetas',[]);
+  const [plan,setPlan]=useLS('ms-plan',{});
+  const [personas,setPersonas]=useLS('ms-personas',5);
+  const [shopChecked,setShopChecked]=useLS('ms-shop-checked',{});
+  const [week,setWeek]=useState(()=>getWeekKey());
+  const [tab,setTab]=useState('planificador');
+
+  const tabs=[['planificador','📅 Planificador'],['recetas','📖 Recetas'],['compras','🛒 Compras']];
+
+  return(
+    <div>
+      <header className="app-header">
+        <div className="app-logo">Menú<span>Semanal</span></div>
+        <nav className="nav-tabs">
+          {tabs.map(([k,l])=>(
+            <button key={k} className={`nav-tab ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{l}</button>
+          ))}
+        </nav>
+        <div className="personas-ctrl">
+          <span>👥</span>
+          <input type="number" min="1" max="30" value={personas} onChange={e=>setPersonas(Math.max(1,parseInt(e.target.value)||1))} title="Personas en el hogar"/>
+          <span>personas</span>
+        </div>
+      </header>
+      <main className="tab-content">
+        {tab==='recetas'&&<RecetasTab recetas={recetas} setRecetas={setRecetas}/>}
+        {tab==='planificador'&&<PlanificadorTab recetas={recetas} plan={plan} setPlan={setPlan} personas={personas} currentWeek={week} setCurrentWeek={setWeek}/>}
+        {tab==='compras'&&<ListaComprasTab recetas={recetas} plan={plan} personas={personas} currentWeek={week} setCurrentWeek={setWeek} shopChecked={shopChecked} setShopChecked={setShopChecked}/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
