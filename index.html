@@ -510,9 +510,64 @@ function ListaComprasTab({recetas,plan,personas,currentWeek,setCurrentWeek,shopC
   );
 }
 
+// ── RECETAS POR DEFECTO (disponibles en cualquier dispositivo) ───────────────
+const uid0 = (s) => s; // IDs fijos para las recetas por defecto
+const V='Verduras y frutas',CA='Carnes y pescados',L='Lácteos y huevos';
+const G='Granos, harinas y pastas',K='Conservas y enlatados',E='Condimentos y especias';
+const PA='Panificados',O='Otros';
+const mk0 = (id, nombre, cat, pb, ings) => ({
+  id, nombre, categoria: cat, porcionesBase: pb,
+  ingredientes: ings.map(([iid,n,c,u,ic]) => ({id:iid,nombre:n,cantidad:c,unidad:u,categoria:ic}))
+});
+const DEFAULT_RECETAS = [
+  mk0('d01','Milanesa de ternera','Almuerzo',4,[['d01i1','Nalga',500,'g',CA],['d01i2','Pan rallado',250,'g',G],['d01i3','Huevos',2,'unidades',L],['d01i4','Sal',50,'g',E]]),
+  mk0('d02','Milanesa de pollo','Almuerzo',4,[['d02i1','Suprema de pollo',1000,'g',CA],['d02i2','Pan rallado',500,'g',G],['d02i3','Harina 0000',300,'g',G],['d02i4','Huevos',2,'unidades',L],['d02i5','Sal',50,'g',E]]),
+  mk0('d03','Pollo al horno','Cena',4,[['d03i1','Pata muslo',5,'unidades',CA]]),
+  mk0('d04','Tarta de jamón y queso','Almuerzo',4,[['d04i1','Tapa de tarta',1,'unidades',G],['d04i2','Queso cremon',250,'g',L],['d04i3','Jamón cocido',200,'g',CA],['d04i4','Huevos',2,'unidades',L],['d04i5','Crema',100,'ml',L]]),
+  mk0('d05','Tarta de zapallitos','Almuerzo',4,[['d05i1','Tapa de tarta',1,'unidades',G],['d05i2','Zapallitos',6,'unidades',V],['d05i3','Cebolla',1,'unidades',V],['d05i4','Huevos',1,'unidades',L],['d05i5','Crema',100,'ml',L],['d05i6','Queso cremon',150,'g',L],['d05i7','Sal',50,'g',E]]),
+  mk0('d06','Tortilla de papas','Almuerzo',4,[['d06i1','Papas',400,'g',V],['d06i2','Huevos',5,'unidades',L],['d06i3','Sal',50,'g',E]]),
+  mk0('d07','Hamburguesa','Almuerzo',4,[['d07i1','Carne picada',1000,'g',CA],['d07i2','Huevos',1,'unidades',L],['d07i3','Cebolla',1,'unidades',V],['d07i4','Pan rallado',200,'g',G]]),
+  mk0('d08','Carne al horno','Cena',4,[['d08i1','Carne (cuadril/picaña/lomo/vacío)',2,'kg',CA]]),
+  mk0('d09','Atún','Almuerzo',1,[['d09i1','Atún en lomitos',1,'latas',K]]),
+  mk0('d10','Fideos con queso','Almuerzo',4,[['d10i1','Fideos (spaghetti/penne/tirabuzon)',1,'paquetes',G],['d10i2','Queso rallado',200,'g',L]]),
+  mk0('d11','Buñuelos de acelga','Almuerzo',4,[['d11i1','Acelga',1,'paquetes',V],['d11i2','Huevos',1,'unidades',L],['d11i3','Harina leudante',100,'g',G],['d11i4','Crema de leche',100,'ml',L],['d11i5','Sal',50,'g',E]]),
+  mk0('d12','Guiso de arroz','Almuerzo',4,[['d12i1','Arroz',300,'g',G],['d12i2','Zanahoria',1,'unidades',V],['d12i3','Carne (cuadril/picaña/lomo/vacío)',600,'g',CA],['d12i4','Cebolla',1,'unidades',V],['d12i5','Sal',50,'g',E],['d12i6','Pimienta',50,'g',E]]),
+  mk0('d13','Comida mexicana','Cena',4,[['d13i1','Suprema de pollo',500,'g',CA],['d13i2','Zanahoria',1,'unidades',V],['d13i3','Morrón rojo',1,'unidades',V],['d13i4','Morrón verde',1,'unidades',V],['d13i5','Rapiditas',1.2,'paquetes',G],['d13i6','Tomate',1,'unidades',V],['d13i7','Sal',50,'g',E],['d13i8','Pimienta',50,'g',E],['d13i9','Pimentón',10,'g',E],['d13i10','Ají molido',10,'g',E],['d13i11','Casancrem',300,'g',L]]),
+  mk0('d14','Pastel de papas','Almuerzo',4,[['d14i1','Carne picada',1,'kg',CA],['d14i2','Papas',1,'kg',V],['d14i3','Leche',150,'ml',L],['d14i4','Manteca',50,'g',L],['d14i5','Aceitunas',100,'g',E],['d14i6','Huevos',2,'unidades',L],['d14i7','Morrón rojo',1,'unidades',V],['d14i8','Cebolla',1,'unidades',V],['d14i9','Sal',50,'g',E],['d14i10','Pimienta',50,'g',E],['d14i11','Salsa de tomate',200,'ml',K]]),
+  mk0('d15','Omelette JyQ','Almuerzo',2,[['d15i1','Huevos',3,'unidades',L],['d15i2','Queso cremon',100,'g',L],['d15i3','Jamón cocido',100,'g',CA]]),
+  mk0('d16','Pizza de muzzarella y jamón','Cena',4,[['d16i1','Harina 0000',500,'g',G],['d16i2','Levadura fresca',50,'g',E],['d16i3','Aceite de girasol',100,'ml',E],['d16i4','Sal',50,'g',E],['d16i5','Azúcar',50,'g',E],['d16i6','Salsa de tomate',200,'ml',K],['d16i7','Condimento para pizza',100,'g',E],['d16i8','Muzzarella',250,'g',L],['d16i9','Jamón cocido',200,'g',CA]]),
+  mk0('d17','Empanadas de JyQ','Almuerzo',4,[['d17i1','Tapas de empanadas',6,'unidades',G],['d17i2','Jamón cocido',300,'g',CA],['d17i3','Queso cremon',300,'g',L],['d17i4','Huevos',1,'unidades',L],['d17i5','Sal',50,'g',E]]),
+  mk0('d18','Empanadas de carne','Almuerzo',4,[['d18i1','Tapas de empanadas',6,'unidades',G],['d18i2','Carne picada',300,'g',CA],['d18i3','Cebolla',1,'unidades',V],['d18i4','Morrón',1,'unidades',V],['d18i5','Huevos',2,'unidades',L],['d18i6','Sal',50,'g',E]]),
+  mk0('d19','Arroz','Otro',4,[['d19i1','Arroz',300,'g',G]]),
+  mk0('d20','Puré de papas','Otro',4,[['d20i1','Papas',500,'g',V],['d20i2','Leche',150,'ml',L],['d20i3','Manteca',50,'g',L],['d20i4','Sal',50,'g',E]]),
+  mk0('d21','Papas al horno','Otro',4,[['d21i1','Papas',300,'g',V]]),
+  mk0('d22','Ensalada rúcula y parmesano','Otro',4,[['d22i1','Rúcula',1,'paquetes',V],['d22i2','Queso de rallar',150,'g',L]]),
+  mk0('d23','Ensalada mixta','Otro',4,[['d23i1','Lechuga mantecosa',1,'paquetes',V],['d23i2','Tomate',2,'unidades',V],['d23i3','Zanahoria',1,'unidades',V],['d23i4','Huevos',2,'unidades',L]]),
+  mk0('d24','Brócoli','Otro',4,[['d24i1','Brócoli',2,'unidades',V]]),
+  mk0('d25','Choclo','Otro',4,[['d25i1','Choclo dulce',4,'unidades',V]]),
+  mk0('d26','Salsa de tomate casera','Otro',4,[['d26i1','Salsa de tomate',250,'ml',K],['d26i2','Cebolla',1,'unidades',V],['d26i3','Sal',50,'g',E]]),
+  mk0('d27','Queso y dulce de batata','Postre',4,[['d27i1','Queso cremon',100,'g',L],['d27i2','Dulce de batata',100,'g',K]]),
+  mk0('d28','Postre de manzana','Postre',4,[['d28i1','Manzanas verdes',2,'unidades',V],['d28i2','Avena',100,'g',G],['d28i3','Manteca',100,'g',L],['d28i4','Azúcar',50,'g',E],['d28i5','Harina 0000',20,'g',G]]),
+  mk0('d29','Banana','Postre',1,[['d29i1','Bananas',1,'unidades',V]]),
+  mk0('d30','Manzana','Postre',1,[['d30i1','Manzanas',1,'unidades',V]]),
+  mk0('d31','Pera','Postre',1,[['d31i1','Peras',1,'unidades',V]]),
+  mk0('d32','Uvas','Postre',4,[['d32i1','Uvas',200,'g',V]]),
+  mk0('d33','Rex','Merienda',1,[['d33i1','Rex',1,'paquetes',O]]),
+  mk0('d34','Chocolinas','Merienda',1,[['d34i1','Chocolinas',1,'paquetes',O]]),
+  mk0('d35','Pepitos','Merienda',1,[['d35i1','Pepitos',1,'paquetes',O]]),
+  mk0('d36','Vainillas','Merienda',1,[['d36i1','Vainillas',0.5,'paquetes',O]]),
+  mk0('d37','Rapiditas de jamón y queso','Desayuno',1,[['d37i1','Rapiditas',0.2,'paquetes',G],['d37i2','Queso cremon',50,'g',L],['d37i3','Jamón cocido',30,'g',CA]]),
+  mk0('d38','Yogurt con granola','Desayuno',1,[['d38i1','Yogurt natural',1,'paquetes',L],['d38i2','Granola',100,'g',G]]),
+  mk0('d39','Tostadas con manteca y dulce','Desayuno',4,[['d39i1','Pan francés',150,'g',PA],['d39i2','Manteca',50,'g',L],['d39i3','Dulce de frutillas',50,'g',K]]),
+  mk0('d40','Huevos revueltos','Desayuno',2,[['d40i1','Huevos',3,'unidades',L],['d40i2','Queso cremon',50,'g',L],['d40i3','Sal',50,'g',E]]),
+  mk0('d41','Zucaritas con leche','Desayuno',1,[['d41i1','Leche',100,'ml',L],['d41i2','Zucaritas',100,'g',O]]),
+  mk0('d42','Naranja','Desayuno',1,[['d42i1','Naranjas',1,'unidades',V]]),
+  mk0('d43','Budín de naranja','Desayuno',6,[['d43i1','Harina leudante',500,'g',G],['d43i2','Huevos',3,'unidades',L],['d43i3','Azúcar',50,'g',E],['d43i4','Aceite de girasol',250,'ml',E],['d43i5','Naranjas',2,'unidades',V]]),
+];
+
 // ── APP ──────────────────────────────────────────────────────────────────────
 function App(){
-  const [recetas,setRecetas]=useLS('ms-recetas',[]);
+  const [recetas,setRecetas]=useLS('ms-recetas', DEFAULT_RECETAS);
   const [plan,setPlan]=useLS('ms-plan',{});
   const [personas,setPersonas]=useLS('ms-personas',5);
   const [shopChecked,setShopChecked]=useLS('ms-shop-checked',{});
