@@ -124,7 +124,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .shop-item.done .shop-name{text-decoration:line-through;color:#a0aec0}
 .shop-qty{font-size:14px;font-weight:700;color:#27ae60}
 .shop-unit{font-size:13px;color:#718096;margin-left:3px}
-@media print{.app-header,.btn,.fab,.shop-cb,.no-print{display:none!important}.tab-content{padding:0;max-width:100%}.cat-group{break-inside:avoid}}
+.print-week-title{display:none}
+@media print{.app-header,.btn,.fab,.shop-cb,.no-print,.planner-header,.cell-add,.cell-remove,.cat-filters{display:none!important}.tab-content{padding:0;max-width:100%}.cat-group{break-inside:avoid}.grid-wrap{overflow:visible!important;border-radius:0!important;box-shadow:none!important}.plan-grid{min-width:0!important;font-size:11px}.meal-cell{min-height:44px!important}.print-week-title{display:block!important;font-weight:800;font-size:14px;margin-bottom:12px;color:#2d3748}}
 @media(max-width:640px){.app-header{padding:0 12px}.nav-tab{padding:12px 10px;font-size:13px}.tab-content{padding:16px 10px}.form-row-2{grid-template-columns:1fr}.ing-header,.ing-row{grid-template-columns:1fr 70px 90px 1fr 32px}}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px}
 </style>
@@ -426,6 +427,22 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
 
   const openPicker=(di,meal)=>setPicker({dayIdx:di,meal,day:DAYS_KEY[di]});
 
+  const shareWhatsApp=()=>{
+    let text=`🗓️ *Menú Semana ${currentWeek.split('-W')[1]}, ${currentWeek.split('-W')[0]}*\n_${fmtDate(dates[0])} al ${fmtDate(dates[6])}_ · 👥 ${personas} personas\n\n`;
+    for(let di=0;di<DAYS_KEY.length;di++){
+      const day=DAYS_KEY[di];
+      const lines=[];
+      for(const meal of MEALS){
+        const slots=getSlot(day,meal);
+        if(!slots.length)continue;
+        const names=slots.map(s=>recetas.find(r=>r.id===s.recipeId)?.nombre).filter(Boolean);
+        if(names.length)lines.push(`  ${MEAL_ICO[meal]} *${MEAL_LBL[meal]}:* ${names.join(', ')}`);
+      }
+      if(lines.length)text+=`*${DAYS_SHORT[di]} ${fmtDate(dates[di])}*\n${lines.join('\n')}\n\n`;
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text.trim())}`, '_blank');
+  };
+
   return(
     <div>
       <div className="planner-header">
@@ -437,8 +454,10 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
           </div>
           <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(addWeeks(currentWeek,1))}>Siguiente →</button>
         </div>
-        <div style={{display:'flex',gap:8}}>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <button className="btn btn-secondary btn-sm" onClick={()=>setCurrentWeek(getWeekKey())}>Hoy</button>
+          <button className="btn btn-secondary btn-sm" onClick={()=>window.print()}>🖨️ Imprimir</button>
+          <button className="btn btn-secondary btn-sm" onClick={shareWhatsApp}>📱 WhatsApp</button>
           <button className="btn btn-danger btn-sm" onClick={()=>{if(!confirm('¿Limpiar toda la semana?'))return;setPlan(p=>{const n={...p};delete n[currentWeek];return n;});}}>Limpiar semana</button>
         </div>
       </div>
@@ -450,6 +469,10 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
           <p>Andá a la pestaña <strong>Recetas</strong> y agregá tus platos favoritos.</p>
         </div>
       ):(
+        <>
+        <div className="print-week-title">
+          🗓️ Menú Semanal — Semana {currentWeek.split('-W')[1]}, {currentWeek.split('-W')[0]} &nbsp;·&nbsp; {fmtDate(dates[0])} al {fmtDate(dates[6])} &nbsp;·&nbsp; 👥 {personas} personas
+        </div>
         <div className="grid-wrap">
           <div className="plan-grid">
             <div className="col-header" style={{background:'#fff'}}><div className="day-name" style={{color:'#a0aec0'}}>Comida</div></div>
@@ -494,6 +517,7 @@ function PlanificadorTab({recetas,plan,setPlan,personas,currentWeek,setCurrentWe
             ))}
           </div>
         </div>
+        </>
       )}
 
       {picker&&(
